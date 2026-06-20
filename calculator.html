@@ -1,0 +1,655 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>מחשבון כיבוד לאירועים</title>
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Heebo', sans-serif;
+    background: #FAFAFA;
+    color: #1a1a1a;
+    min-height: 100vh;
+    padding: 24px 16px 48px;
+  }
+
+  header {
+    text-align: center;
+    margin-bottom: 32px;
+  }
+  header h1 {
+    font-size: 1.9rem;
+    font-weight: 700;
+    color: #B5860D;
+    letter-spacing: -0.5px;
+  }
+  header p {
+    color: #777;
+    font-size: 0.95rem;
+    margin-top: 4px;
+  }
+
+  .layout {
+    display: grid;
+    grid-template-columns: 40% 60%;
+    gap: 24px;
+    max-width: 1100px;
+    margin: 0 auto;
+    align-items: start;
+  }
+
+  /* ── CARD ── */
+  .card {
+    background: #fff;
+    border: 1px solid #e8e8e8;
+    border-radius: 14px;
+    overflow: hidden;
+  }
+
+  /* ── FORM ── */
+  .form-section {
+    padding: 22px 22px 0;
+  }
+  .form-section + .form-section {
+    border-top: 1px solid #f0f0f0;
+  }
+  .section-label {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: #B5860D;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    margin-bottom: 12px;
+  }
+  .section-label span { font-size: 1rem; margin-left: 4px; }
+
+  /* guest counter */
+  .guest-counter {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 22px;
+  }
+  .guest-counter button {
+    width: 40px; height: 40px;
+    border-radius: 50%;
+    border: 1.5px solid #B5860D;
+    background: #fff;
+    color: #B5860D;
+    font-size: 1.3rem;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: background 0.15s, color 0.15s;
+    flex-shrink: 0;
+  }
+  .guest-counter button:hover { background: #B5860D; color: #fff; }
+  .guest-counter input[type="number"] {
+    flex: 1;
+    text-align: center;
+    font-family: 'Heebo', sans-serif;
+    font-size: 1.7rem;
+    font-weight: 700;
+    border: 1.5px solid #e0e0e0;
+    border-radius: 10px;
+    padding: 8px;
+    color: #1a1a1a;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  .guest-counter input[type="number"]:focus { border-color: #B5860D; }
+  .guest-counter input::-webkit-inner-spin-button,
+  .guest-counter input::-webkit-outer-spin-button { -webkit-appearance: none; }
+
+  /* chips */
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 22px; }
+  .chip {
+    padding: 7px 16px;
+    border-radius: 999px;
+    border: 1.5px solid #ddd;
+    background: #fff;
+    font-family: 'Heebo', sans-serif;
+    font-size: 0.88rem;
+    cursor: pointer;
+    transition: all 0.15s;
+    color: #444;
+    user-select: none;
+  }
+  .chip:hover { border-color: #B5860D; color: #B5860D; }
+  .chip.active {
+    border-color: #B5860D;
+    background: #FDF6E3;
+    color: #8a6200;
+    font-weight: 600;
+  }
+
+  /* checkboxes + sensitivity fields */
+  .sensitivity-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+    flex-wrap: wrap;
+  }
+  .sensitivity-row label {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    min-width: 120px;
+  }
+  .sensitivity-row input[type="checkbox"] {
+    width: 17px; height: 17px;
+    accent-color: #E91E63;
+    cursor: pointer;
+  }
+  .sensitivity-count {
+    display: none;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.82rem;
+    color: #666;
+  }
+  .sensitivity-count.visible { display: flex; }
+  .sensitivity-count input[type="number"] {
+    width: 60px;
+    padding: 4px 8px;
+    border: 1.5px solid #E91E63;
+    border-radius: 8px;
+    font-family: 'Heebo', sans-serif;
+    font-size: 0.88rem;
+    outline: none;
+    text-align: center;
+  }
+
+  /* submit */
+  .form-footer {
+    padding: 18px 22px 22px;
+  }
+  .btn-calc {
+    width: 100%;
+    padding: 14px;
+    background: #B5860D;
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    font-family: 'Heebo', sans-serif;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    letter-spacing: 0.3px;
+    transition: background 0.2s, transform 0.1s;
+  }
+  .btn-calc:hover { background: #9a700a; }
+  .btn-calc:active { transform: scale(0.98); }
+
+  /* ── RESULTS ── */
+  #results-panel {
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.4s ease;
+  }
+  #results-panel.visible {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .results-header {
+    padding: 22px 22px 14px;
+    border-bottom: 1px solid #f0f0f0;
+  }
+  .results-header h2 { font-size: 1.2rem; font-weight: 700; }
+  .results-summary {
+    font-size: 0.87rem;
+    color: #666;
+    margin-top: 4px;
+    line-height: 1.5;
+  }
+
+  .category-block {
+    padding: 16px 22px;
+    border-bottom: 1px solid #f5f5f5;
+  }
+  .category-block:last-of-type { border-bottom: none; }
+  .category-title {
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: #B5860D;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    margin-bottom: 10px;
+  }
+  .item-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    padding: 5px 0;
+    font-size: 0.92rem;
+    border-bottom: 1px dashed #f0f0f0;
+  }
+  .item-row:last-child { border-bottom: none; }
+  .item-name { color: #333; }
+  .item-qty { font-weight: 700; color: #1a1a1a; white-space: nowrap; margin-right: 8px; }
+
+  /* sensitivity card */
+  .sensitivity-card {
+    margin: 0 22px 18px;
+    background: #FFF0F5;
+    border: 1.5px solid #E91E63;
+    border-radius: 10px;
+    padding: 14px 16px;
+  }
+  .sensitivity-card h3 {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: #E91E63;
+    margin-bottom: 8px;
+  }
+  .sensitivity-item {
+    font-size: 0.88rem;
+    color: #555;
+    padding: 3px 0;
+  }
+
+  /* tip */
+  .tip-block {
+    margin: 0 22px 18px;
+    background: #F9F5E8;
+    border-right: 3px solid #B5860D;
+    border-radius: 0 8px 8px 0;
+    padding: 11px 14px;
+    font-size: 0.87rem;
+    color: #7a6000;
+    line-height: 1.5;
+  }
+  .tip-label { font-weight: 700; margin-left: 4px; }
+
+  /* print button */
+  .print-btn {
+    display: block;
+    margin: 0 22px 22px;
+    padding: 10px;
+    border: 1.5px solid #B5860D;
+    background: #fff;
+    color: #B5860D;
+    border-radius: 8px;
+    font-family: 'Heebo', sans-serif;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    text-align: center;
+    transition: background 0.15s, color 0.15s;
+  }
+  .print-btn:hover { background: #B5860D; color: #fff; }
+
+  /* placeholder */
+  #results-placeholder {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 260px;
+    color: #ccc;
+    text-align: center;
+    padding: 32px;
+  }
+  #results-placeholder svg { margin-bottom: 14px; }
+  #results-placeholder p { font-size: 0.9rem; line-height: 1.5; }
+
+  /* responsive */
+  @media (max-width: 720px) {
+    .layout { grid-template-columns: 1fr; }
+    #results-panel { order: 2; }
+  }
+
+  @media print {
+    body { background: #fff; padding: 0; }
+    header, .form-column, .print-btn { display: none !important; }
+    #results-panel { opacity: 1 !important; pointer-events: auto !important; }
+    .layout { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>🍽️ מחשבון כיבוד לאירועים</h1>
+  <p>קבל הערכה מדויקת לכמויות האוכל לפי סוג האירוע</p>
+</header>
+
+<div class="layout">
+
+  <!-- ═══ FORM COLUMN ═══ -->
+  <div class="form-column">
+    <div class="card">
+
+      <!-- Guests -->
+      <div class="form-section">
+        <div class="section-label"><span>👥</span> מספר אורחים</div>
+        <div class="guest-counter">
+          <button onclick="changeGuests(-10)" title="הפחת 10">−</button>
+          <input type="number" id="guests" value="50" min="5" max="2000">
+          <button onclick="changeGuests(10)" title="הוסף 10">+</button>
+        </div>
+      </div>
+
+      <!-- Audience -->
+      <div class="form-section">
+        <div class="section-label"><span>🎯</span> קהל יעד</div>
+        <div class="chips" id="audience">
+          <div class="chip active" data-val="adults">מבוגרים</div>
+          <div class="chip" data-val="kids">ילדים</div>
+          <div class="chip" data-val="mixed">מעורב</div>
+        </div>
+      </div>
+
+      <!-- Event type -->
+      <div class="form-section">
+        <div class="section-label"><span>🎉</span> סוג האירוע</div>
+        <div class="chips" id="eventType">
+          <div class="chip active" data-val="birthday">יום הולדת</div>
+          <div class="chip" data-val="brit">ברית</div>
+          <div class="chip" data-val="batmitzva">בת מצווה</div>
+          <div class="chip" data-val="business">עסקי</div>
+          <div class="chip" data-val="other">אחר</div>
+        </div>
+      </div>
+
+      <!-- Menu preference -->
+      <div class="form-section">
+        <div class="section-label"><span>🥗</span> העדפת תפריט</div>
+        <div class="chips multi" id="menuPref">
+          <div class="chip" data-val="dairy">חלבי</div>
+          <div class="chip" data-val="meat">בשרי</div>
+          <div class="chip active" data-val="parve">פרווה</div>
+          <div class="chip" data-val="light">כיבוד קל</div>
+          <div class="chip" data-val="sweet">מתוק</div>
+        </div>
+      </div>
+
+      <!-- Sensitivities -->
+      <div class="form-section">
+        <div class="section-label"><span>⚠️</span> רגישויות תזונתיות</div>
+        <div id="sensitivities" style="margin-bottom:22px">
+          <div class="sensitivity-row">
+            <label>
+              <input type="checkbox" data-key="gluten" onchange="toggleCount(this)">
+              ללא גלוטן
+            </label>
+            <div class="sensitivity-count" id="count-gluten">
+              <span>כמה אורחים?</span>
+              <input type="number" id="n-gluten" value="5" min="1">
+            </div>
+          </div>
+          <div class="sensitivity-row">
+            <label>
+              <input type="checkbox" data-key="lactose" onchange="toggleCount(this)">
+              ללא לקטוז
+            </label>
+            <div class="sensitivity-count" id="count-lactose">
+              <span>כמה אורחים?</span>
+              <input type="number" id="n-lactose" value="5" min="1">
+            </div>
+          </div>
+          <div class="sensitivity-row">
+            <label>
+              <input type="checkbox" data-key="nuts" onchange="toggleCount(this)">
+              ללא אגוזים
+            </label>
+            <div class="sensitivity-count" id="count-nuts">
+              <span>כמה אורחים?</span>
+              <input type="number" id="n-nuts" value="3" min="1">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Time of event -->
+      <div class="form-section">
+        <div class="section-label"><span>🕐</span> שעת האירוע</div>
+        <div class="chips" id="eventTime">
+          <div class="chip" data-val="morning">🌅 בוקר</div>
+          <div class="chip active" data-val="noon">☀️ צהריים</div>
+          <div class="chip" data-val="evening">🌙 ערב</div>
+        </div>
+      </div>
+
+      <!-- Submit -->
+      <div class="form-footer">
+        <button class="btn-calc" onclick="calculate()">חשב כיבוד ←</button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ═══ RESULTS COLUMN ═══ -->
+  <div class="results-column">
+
+    <!-- Placeholder -->
+    <div class="card" id="results-placeholder">
+      <svg width="56" height="56" viewBox="0 0 56 56" fill="none">
+        <circle cx="28" cy="28" r="27" stroke="#e0e0e0" stroke-width="2"/>
+        <text x="28" y="36" text-anchor="middle" font-size="24">🍽️</text>
+      </svg>
+      <p>מלא את הפרטים בטופס<br>ולחץ על "חשב כיבוד"<br>כדי לקבל הערכת כמויות</p>
+    </div>
+
+    <!-- Results -->
+    <div class="card" id="results-panel">
+      <div class="results-header">
+        <h2 id="res-title">הכיבוד המומלץ לאירוע שלך</h2>
+        <div class="results-summary" id="res-summary"></div>
+      </div>
+
+      <div id="res-categories"></div>
+
+      <div id="res-sensitivity" class="sensitivity-card" style="display:none"></div>
+
+      <div class="tip-block" id="res-tip" style="display:none"></div>
+
+      <button class="print-btn" onclick="window.print()">🖨️ הדפסת רשימה</button>
+    </div>
+
+  </div>
+</div>
+
+<script>
+// ── CHIP LOGIC ──
+document.querySelectorAll('.chips:not(.multi)').forEach(group => {
+  group.querySelectorAll('.chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      group.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+      chip.classList.add('active');
+    });
+  });
+});
+document.querySelectorAll('.chips.multi').forEach(group => {
+  group.querySelectorAll('.chip').forEach(chip => {
+    chip.addEventListener('click', () => chip.classList.toggle('active'));
+  });
+});
+
+function changeGuests(delta) {
+  const inp = document.getElementById('guests');
+  inp.value = Math.max(5, Math.min(2000, (+inp.value || 50) + delta));
+}
+
+function toggleCount(cb) {
+  const el = document.getElementById('count-' + cb.dataset.key);
+  el.classList.toggle('visible', cb.checked);
+}
+
+function getSelected(id) {
+  return [...document.querySelectorAll(`#${id} .chip.active`)].map(c => c.dataset.val);
+}
+
+// ── CALCULATION ENGINE ──
+function calculate() {
+  const guests   = Math.max(5, +document.getElementById('guests').value || 50);
+  const audience = getSelected('audience')[0] || 'adults';
+  const event    = getSelected('eventType')[0] || 'other';
+  const menu     = getSelected('menuPref');
+  const time     = getSelected('eventTime')[0] || 'noon';
+
+  // Multipliers
+  const kidsRatio = audience === 'kids' ? 0.7 : audience === 'mixed' ? 0.85 : 1;
+  const timeM     = time === 'morning' ? 0.75 : time === 'evening' ? 1.15 : 1;
+  const eventM    = event === 'brit' ? 1.1 : event === 'batmitzva' ? 1.2 : event === 'business' ? 0.9 : 1;
+  const isSweet   = menu.includes('sweet') || menu.includes('light');
+  const isMeat    = menu.includes('meat');
+  const isDairy   = menu.includes('dairy');
+
+  const g = guests;
+  const m = kidsRatio * timeM * eventM;
+
+  const categories = [];
+
+  // ── מלוח ──
+  if (!isSweet || menu.includes('parve') || isMeat || isDairy) {
+    const savory = [];
+    if (isMeat) {
+      savory.push({ name: 'מנות בשר עיקריות', qty: qty(g * 0.9 * m, 'מנות') });
+      savory.push({ name: 'רולדות / שיפודים', qty: qty(g * 1.5 * m, 'יחידות') });
+    }
+    if (isDairy) {
+      savory.push({ name: 'קישים / פשטידות', qty: qty(g * 0.4 * m, 'מנות') });
+      savory.push({ name: 'מגש גבינות', qty: qty(g / 20 * m, 'מגשים') });
+    }
+    if (!isMeat && !isDairy) {
+      savory.push({ name: 'כריכים / לחמניות', qty: qty(g * 1.8 * m, 'יחידות') });
+      savory.push({ name: 'מגש ירקות חתוכים', qty: qty(g / 15 * m, 'מגשים') });
+      savory.push({ name: 'ממרחים (חומוס, טחינה)', qty: qty(g * 0.08 * m, 'ק"ג') });
+    }
+    if (savory.length) categories.push({ title: '🥙 מלוח', items: savory });
+  }
+
+  // ── מתוק ──
+  const sweet = [];
+  if (event === 'birthday') {
+    sweet.push({ name: 'עוגת יום הולדת', qty: qty(Math.ceil(g / 16), 'עוגות') });
+  }
+  sweet.push({ name: 'עוגיות / בראוניז', qty: qty(Math.round(g * 2.5 * m), 'יחידות') });
+  sweet.push({ name: 'פטיפורים / מיני-קינוחים', qty: qty(Math.round(g * 2 * m), 'יחידות') });
+  if (isSweet) {
+    sweet.push({ name: 'מגש פירות חתוכים', qty: qty(Math.ceil(g / 12 * m), 'מגשים') });
+  }
+  categories.push({ title: '🍰 מתוק', items: sweet });
+
+  // ── פרי ──
+  const fruits = [];
+  fruits.push({ name: 'פירות שלמים לקינוח', qty: qty(Math.round(g * 0.8 * m), 'יחידות') });
+  if (!isSweet) categories.push({ title: '🍓 פירות', items: fruits });
+
+  // ── שתייה ──
+  const drinks = [];
+  const juiceL = roundHalf(g * 0.25 * timeM);
+  const waterL  = roundHalf(g * 0.35 * timeM);
+  const sodaL   = roundHalf(g * 0.15 * timeM);
+  drinks.push({ name: 'מים / מים מוגזים', qty: qty(waterL, 'ליטר') });
+  drinks.push({ name: 'מיצים טבעיים', qty: qty(juiceL, 'ליטר') });
+  drinks.push({ name: 'שתייה קלה', qty: qty(sodaL, 'ליטר') });
+  if (time !== 'morning') {
+    drinks.push({ name: 'קפה / תה (הכנה)', qty: qty(Math.ceil(g * 0.6), 'כוסות') });
+  } else {
+    drinks.push({ name: 'קפה / תה', qty: qty(Math.ceil(g * 0.8), 'כוסות') });
+  }
+  categories.push({ title: '🥤 שתייה', items: drinks });
+
+  // ── ציוד חד-פעמי ──
+  const disposable = [];
+  disposable.push({ name: 'צלחות', qty: qty(Math.round(g * 2.2), 'יחידות') });
+  disposable.push({ name: 'כוסות', qty: qty(Math.round(g * 3), 'יחידות') });
+  disposable.push({ name: 'מפיות', qty: qty(Math.round(g * 6), 'יחידות') });
+  disposable.push({ name: 'סכום פלסטיק (סט)', qty: qty(Math.round(g * 1.3), 'סטים') });
+  categories.push({ title: '🍽️ ציוד חד-פעמי', items: disposable });
+
+  // ── RENDER ──
+  const resPanel = document.getElementById('results-panel');
+  const placeholder = document.getElementById('results-placeholder');
+
+  document.getElementById('res-title').textContent = eventLabel(event) + ' — ' + g + ' אורחים';
+  document.getElementById('res-summary').innerHTML =
+    `${audienceLabel(audience)} · ${timeLabel(time)} · ${menuLabel(menu)}<br>` +
+    `<strong>הכמויות כוללות ~15% עודף בטחון</strong>`;
+
+  const catEl = document.getElementById('res-categories');
+  catEl.innerHTML = '';
+  categories.forEach(cat => {
+    const block = document.createElement('div');
+    block.className = 'category-block';
+    block.innerHTML = `<div class="category-title">${cat.title}</div>` +
+      cat.items.map(it =>
+        `<div class="item-row"><span class="item-name">${it.name}</span><span class="item-qty">${it.qty}</span></div>`
+      ).join('');
+    catEl.appendChild(block);
+  });
+
+  // sensitivities
+  const sensCards = [];
+  ['gluten','lactose','nuts'].forEach(key => {
+    const cb = document.querySelector(`[data-key="${key}"]`);
+    if (cb && cb.checked) {
+      const n = +document.getElementById('n-' + key).value || 5;
+      sensCards.push(`<div class="sensitivity-item">• ${sensLabel(key)}: <strong>${n} אורחים</strong> — הכן מנות נפרדות מסומנות</div>`);
+    }
+  });
+  const sensEl = document.getElementById('res-sensitivity');
+  if (sensCards.length) {
+    sensEl.style.display = 'block';
+    sensEl.innerHTML = `<h3>⚠️ התראות רגישות</h3>` + sensCards.join('');
+  } else {
+    sensEl.style.display = 'none';
+  }
+
+  // tip
+  const tipEl = document.getElementById('res-tip');
+  const tipText = getTip(event, time, audience, menu);
+  if (tipText) {
+    tipEl.style.display = 'block';
+    tipEl.innerHTML = `<span class="tip-label">💡 טיפ:</span>${tipText}`;
+  } else {
+    tipEl.style.display = 'none';
+  }
+
+  placeholder.style.display = 'none';
+  resPanel.classList.add('visible');
+}
+
+// ── HELPERS ──
+function qty(n, unit) {
+  const rounded = unit === 'ק"ג' || unit === 'ליטר' ? roundHalf(n) : Math.round(n);
+  return `${rounded} ${unit}`;
+}
+function roundHalf(n) { return Math.round(n * 2) / 2; }
+
+function eventLabel(v) {
+  return { brit:'ברית', batmitzva:'בת מצווה', birthday:'יום הולדת', business:'אירוע עסקי', other:'אירוע' }[v] || 'אירוע';
+}
+function audienceLabel(v) {
+  return { adults:'מבוגרים', kids:'ילדים', mixed:'קהל מעורב' }[v] || '';
+}
+function timeLabel(v) {
+  return { morning:'בוקר', noon:'צהריים', evening:'ערב' }[v] || '';
+}
+function menuLabel(arr) {
+  const map = { dairy:'חלבי', meat:'בשרי', parve:'פרווה', light:'כיבוד קל', sweet:'מתוק' };
+  return arr.map(k => map[k] || k).join(' + ') || 'כללי';
+}
+function sensLabel(k) {
+  return { gluten:'ללא גלוטן', lactose:'ללא לקטוז', nuts:'ללא אגוזים' }[k] || k;
+}
+function getTip(event, time, audience, menu) {
+  if (event === 'brit') return 'בברית מילה נהוג להגיש כיבוד בוקר עשיר — אל תשכח לחם חלה ומאפים טריים.';
+  if (event === 'batmitzva') return 'לבת מצווה — כדאי להוסיף סטנד ממתקים צבעוני שיהווה גם קישוט.';
+  if (event === 'business') return 'באירועים עסקיים — פחות כמות, יותר איכות. עדיף מזון בנגיסה אחת.';
+  if (time === 'evening') return 'ערב — הכמויות גדולות יותר. ודא שיש גם אפשרויות חמות או עיקריות.';
+  if (audience === 'kids') return 'לילדים — הכן מגש עם אצבעות ירק, גבינות קוביות ונשנושים בצבעים שמחים.';
+  if (menu.includes('sweet')) return 'כיבוד מתוק — כדאי לפזר תחנות קטנות בכל האולם במקום שולחן מרכזי אחד.';
+  return 'הזמן הכמויות מהספק 48 שעות לפחות מראש כדי להבטיח זמינות.';
+}
+</script>
+</body>
+</html>
