@@ -19,6 +19,26 @@
   header {
     text-align: center;
     margin-bottom: 32px;
+    position: relative;
+  }
+  .close-btn {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 38px;
+    height: 38px;
+    border: none;
+    border-radius: 50%;
+    background: #fff;
+    color: #B5860D;
+    font-size: 1.1rem;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    transition: background 0.15s, color 0.15s;
+  }
+  .close-btn:hover {
+    background: #B5860D;
+    color: #fff;
   }
   header h1 {
     font-size: 1.9rem;
@@ -299,6 +319,61 @@
   #results-placeholder svg { margin-bottom: 14px; }
   #results-placeholder p { font-size: 0.9rem; line-height: 1.5; }
 
+  /* bookmarks */
+  .bookmark-card {
+    max-width: 1100px;
+    margin: 0 auto 24px;
+    padding: 20px 22px;
+  }
+  .bookmark-header h2 {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: #B5860D;
+    margin-bottom: 4px;
+  }
+  .bookmark-header p {
+    font-size: 0.9rem;
+    color: #777;
+    margin-bottom: 14px;
+  }
+  .bookmark-search input {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1.5px solid #e0e0e0;
+    border-radius: 10px;
+    font-family: 'Heebo', sans-serif;
+    font-size: 0.95rem;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  .bookmark-search input:focus { border-color: #B5860D; }
+  .bookmark-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 14px;
+  }
+  .bookmark-item {
+    display: block;
+    padding: 10px 12px;
+    border: 1px solid #f0f0f0;
+    border-radius: 10px;
+    color: #333;
+    text-decoration: none;
+    background: #fcfcfc;
+    transition: border-color 0.15s, background 0.15s;
+  }
+  .bookmark-item:hover {
+    border-color: #B5860D;
+    background: #FFF8E3;
+  }
+  .bookmark-empty {
+    display: none;
+    padding: 12px;
+    color: #888;
+    font-size: 0.9rem;
+  }
+
   /* responsive */
   @media (max-width: 720px) {
     .layout { grid-template-columns: 1fr; }
@@ -316,9 +391,28 @@
 <body>
 
 <header>
+  <button class="close-btn" onclick="closeWindow()" aria-label="סגור חלון">✕</button>
   <h1>🍽️ מחשבון כיבוד לאירועים</h1>
   <p>קבל הערכה מדויקת לכמויות האוכל לפי סוג האירוע</p>
 </header>
+
+<div class="card bookmark-card">
+  <div class="bookmark-header">
+    <h2>🔖 סימניות</h2>
+    <p>חפש סימנייה לפי כותרת בזמן ההקלדה</p>
+  </div>
+  <div class="bookmark-search">
+    <input type="search" id="bookmark-search" placeholder="הקלד שם סימנייה..." autocomplete="off">
+  </div>
+  <div class="bookmark-list" id="bookmark-list">
+    <a class="bookmark-item" href="#" data-title="יום הולדת משפחתי">יום הולדת משפחתי</a>
+    <a class="bookmark-item" href="#" data-title="אירוע עסקי עם לקוחות">אירוע עסקי עם לקוחות</a>
+    <a class="bookmark-item" href="#" data-title="ברית מילה בבוקר">ברית מילה בבוקר</a>
+    <a class="bookmark-item" href="#" data-title="בת מצווה בערב">בת מצווה בערב</a>
+    <a class="bookmark-item" href="#" data-title="כיבוד קל לילדים">כיבוד קל לילדים</a>
+  </div>
+  <div class="bookmark-empty" id="bookmark-empty">לא נמצאו סימניות התואמות לחיפוש.</div>
+</div>
 
 <div class="layout">
 
@@ -471,6 +565,36 @@ document.querySelectorAll('.chips.multi').forEach(group => {
     chip.addEventListener('click', () => chip.classList.toggle('active'));
   });
 });
+
+const bookmarkSearchInput = document.getElementById('bookmark-search');
+const bookmarkItems = Array.from(document.querySelectorAll('#bookmark-list .bookmark-item'));
+const bookmarkEmpty = document.getElementById('bookmark-empty');
+
+if (bookmarkSearchInput) {
+  bookmarkSearchInput.addEventListener('input', () => {
+    const query = bookmarkSearchInput.value.trim().toLowerCase();
+    let visibleCount = 0;
+
+    bookmarkItems.forEach(item => {
+      const matches = !query || item.dataset.title.toLowerCase().includes(query);
+      item.style.display = matches ? '' : 'none';
+      if (matches) visibleCount += 1;
+    });
+
+    if (bookmarkEmpty) {
+      bookmarkEmpty.style.display = visibleCount ? 'none' : 'block';
+    }
+  });
+}
+
+function closeWindow() {
+  try {
+    window.close();
+  } catch (e) {}
+  if (!window.closed) {
+    window.location.href = 'about:blank';
+  }
+}
 
 function changeGuests(delta) {
   const inp = document.getElementById('guests');
