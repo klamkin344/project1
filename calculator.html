@@ -393,7 +393,7 @@
 <header>
   <button class="close-btn" onclick="closeWindow()" aria-label="סגור חלון">✕</button>
   <h1>🍽️ מחשבון כיבוד לאירועים</h1>
-  <p>קבל הערכה מדויקת לכמויות האוכל לפי סוג האירוע</p>
+  <p>קבל הערכה מדויקת ומהירה לכמויות האוכל לפי סוג האירוע</p>
 </header>
 
 <div class="card bookmark-card">
@@ -597,8 +597,12 @@ function closeWindow() {
 }
 
 function changeGuests(delta) {
-  const inp = document.getElementById('guests');
-  inp.value = Math.max(5, Math.min(2000, (+inp.value || 50) + delta));
+  const guestInput = document.getElementById('guests');
+  guestInput.value = Math.max(5, Math.min(2000, (+guestInput.value || 50) + delta));
+}
+
+function formatGuestCount(n) {
+  return new Intl.NumberFormat('he-IL').format(n);
 }
 
 function toggleCount(cb) {
